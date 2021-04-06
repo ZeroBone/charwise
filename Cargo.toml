@@ -1,8 +1,14 @@
 [package]
 name = "charwise"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["ZeroBone <zerobone21@gmail.com>"]
 edition = "2018"
+license-file = "LICENSE"
+description = "This lightweight, dependency-free rust library provides a convenient way to read characters from different resources."
+homepage = "https://github.com/ZeroBone/charwise"
+repository = "https://github.com/ZeroBone/charwise"
+readme = "README.md"
+keywords = ["stream", "buffer", "character", "lexer", "buffering", "peek", "character-stream"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
