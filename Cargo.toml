@@ -10,9 +10,7 @@ repository = "https://github.com/ZeroBone/charwise"
 readme = "README.md"
 keywords = ["stream", "character", "lexer", "buffering", "peek"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 
 [dev-dependencies]
-tempfile = "*"
+tempfile = "3.2.0"
