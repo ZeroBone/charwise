@@ -1,9 +1,8 @@
-mod file;
-mod error;
+pub mod file;
 
 use std::fs::File;
+use std::io::Result;
 use crate::file::CharwiseFile;
-use crate::error::CharwiseError;
 
 pub enum Charwise {
     File(CharwiseFile),
@@ -25,7 +24,7 @@ impl Charwise {
         }
     }
 
-    pub fn peek(&mut self) -> Option<Result<char, CharwiseError>> {
+    pub fn peek(&mut self) -> Option<Result<char>> {
         match self {
             Charwise::File(cf) => cf.peek(),
             Charwise::Stdin => todo!()
@@ -36,7 +35,7 @@ impl Charwise {
 
 impl Iterator for Charwise {
 
-    type Item = Result<char, CharwiseError>;
+    type Item = Result<char>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {

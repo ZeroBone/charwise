@@ -1,6 +1,5 @@
-use std::io::{BufReader, BufRead};
+use std::io::{BufReader, BufRead, Result};
 use std::fs::File;
-use crate::error::CharwiseError;
 
 pub struct CharwiseFile {
     reader: BufReader<File>,
@@ -29,13 +28,13 @@ impl CharwiseFile {
     }
 
     /// Reads the next character without changing the current position
-    pub fn peek(&mut self) -> Option<Result<char, CharwiseError>> {
+    pub fn peek(&mut self) -> Option<Result<char>> {
         self.peek_nth(0)
     }
 
     /// Reads the n-th character ahead of the reader without altering the current position,
     /// calling `peek_nth(0)` is equivalent to reading the next character similar to `next()`
-    pub fn peek_nth(&mut self, n: usize) -> Option<Result<char, CharwiseError>> {
+    pub fn peek_nth(&mut self, n: usize) -> Option<Result<char>> {
 
         loop {
 
@@ -65,7 +64,7 @@ impl CharwiseFile {
 
                 }
                 Err(e) => {
-                    return Some(Err(CharwiseError::IOError(e)));
+                    return Some(Err(e));
                 }
             }
         }
@@ -83,7 +82,7 @@ impl CharwiseFile {
 
 impl Iterator for CharwiseFile {
 
-    type Item = Result<char, CharwiseError>;
+    type Item = Result<char>;
 
     fn next(&mut self) -> Option<Self::Item> {
 
@@ -115,7 +114,7 @@ impl Iterator for CharwiseFile {
                 Some(Ok(self.buffer[0]))
             }
             Err(e) => {
-                Some(Err(CharwiseError::IOError(e)))
+                Some(Err(e))
             }
         }
     }
