@@ -9,7 +9,6 @@ This library is particularly useful when implementing handwritten [lexers](https
 
 * Buffering of characters.
 * Peeking next characters without consuming them.
-* Abstracting from the source we are reading characters from.
 
 All these features are implemented in `charwise`.
 
@@ -25,4 +24,42 @@ to your `Cargo.toml` file.
 
 ## Example
 
-(will be added shortly)
+```rust
+use std::fs::File;
+use charwise::Charwise;
+
+fn main() {
+
+    // file contains the following data: test content✌😜
+    let file = File::open("test.txt").unwrap();
+
+    let mut cwf = Charwise::from_file(file);
+
+    assert_eq!('t', cwf.next().unwrap().unwrap());
+    assert_eq!('e', cwf.next().unwrap().unwrap());
+    assert_eq!('s', cwf.next().unwrap().unwrap());
+    assert_eq!('t', cwf.next().unwrap().unwrap());
+    assert_eq!(' ', cwf.next().unwrap().unwrap());
+    assert_eq!('c', cwf.next().unwrap().unwrap());
+    assert_eq!('o', cwf.next().unwrap().unwrap());
+
+    // peek the next character without reading it
+    assert_eq!('n', cwf.peek().unwrap().unwrap());
+
+    assert_eq!('n', cwf.next().unwrap().unwrap());
+    assert_eq!('t', cwf.next().unwrap().unwrap());
+
+    // peek 4 characters ahead
+    assert_eq!('✌', cwf.peek_nth(3).unwrap().unwrap());
+
+    assert_eq!('e', cwf.next().unwrap().unwrap());
+    assert_eq!('n', cwf.next().unwrap().unwrap());
+    assert_eq!('t', cwf.next().unwrap().unwrap());
+    assert_eq!('✌', cwf.next().unwrap().unwrap());
+    assert_eq!('😜', cwf.next().unwrap().unwrap());
+
+    // end of file
+    assert!(cwf.next().is_none());
+
+}
+```
