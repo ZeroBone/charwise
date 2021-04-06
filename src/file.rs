@@ -26,8 +26,51 @@ impl CharwiseFile {
         self.position + self.position_in_buffer
     }
 
-    pub fn peek_nth(&mut self, _n: usize) -> Option<Result<char, CharwiseError>> {
-        todo!()
+    /// Reads the next character without changing the current position
+    pub fn peek(&mut self) -> Option<Result<char, CharwiseError>> {
+        self.peek_nth(0)
+    }
+
+    /// Reads the n-th character ahead of the reader without altering the current position,
+    /// calling `peek_nth(0)` is equivalent to reading the next character similar to `next()`
+    pub fn peek_nth(&mut self, n: usize) -> Option<Result<char, CharwiseError>> {
+
+        loop {
+
+            self.cleanup_buffer();
+
+            if self.position_in_buffer + n < self.buffer.len() {
+                return Some(Ok(self.buffer[self.position_in_buffer + n]));
+            }
+
+            let mut temp_buffer = String::new();
+
+            match self.reader.read_line(&mut temp_buffer) {
+                Ok(bytes_read) => {
+
+                    if bytes_read == 0 {
+                        // eof reached
+                        return None
+                    }
+
+                    let temp_buffer: &mut Vec<char> = &mut temp_buffer.chars().collect();
+
+                    debug_assert!(temp_buffer.len() >= 1);
+
+                    self.buffer.append(temp_buffer);
+
+                    debug_assert!(self.buffer.len() >= 1);
+
+                }
+                Err(e) => {
+                    return Some(Err(CharwiseError::IOError(e)));
+                }
+            }
+        }
+    }
+
+    fn cleanup_buffer(&mut self) {
+        // TODO
     }
 
 }
@@ -41,6 +84,7 @@ impl Iterator for CharwiseFile {
         if self.position_in_buffer < self.buffer.len() {
             let c = self.buffer[self.position_in_buffer];
             self.position_in_buffer += 1;
+            self.cleanup_buffer();
             return Some(Ok(c));
         }
 
@@ -56,7 +100,7 @@ impl Iterator for CharwiseFile {
 
                 self.buffer = temp_buffer.chars().collect();
 
-                assert!(self.buffer.len() >= 1);
+                debug_assert!(self.buffer.len() >= 1);
 
                 self.position += self.position_in_buffer;
 
@@ -87,8 +131,12 @@ mod tests {
 
         for (i, c) in data.chars().enumerate() {
             assert_eq!(cwf.reading_position(), i);
+            assert_eq!(cwf.peek().unwrap().unwrap_or('\0'), c);
             assert_eq!(cwf.next().unwrap().unwrap_or('\0'), c);
         }
+
+        assert!(cwf.peek().is_none());
+        assert!(cwf.next().is_none());
 
     }
 

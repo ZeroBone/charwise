@@ -25,6 +25,13 @@ impl Charwise {
         }
     }
 
+    pub fn peek(&mut self) -> Option<Result<char, CharwiseError>> {
+        match self {
+            Charwise::File(cf) => cf.peek(),
+            Charwise::Stdin => todo!()
+        }
+    }
+
 }
 
 impl Iterator for Charwise {
