@@ -16,6 +16,15 @@ impl Charwise {
         Self::File(CharwiseFile::new(file))
     }
 
+    /// Returns the position of the next character to be read, or,
+    /// in other words, the amount of characters read so far
+    pub fn reading_position(&self) -> usize {
+        match self {
+            Charwise::File(cf) => cf.reading_position(),
+            Charwise::Stdin => todo!()
+        }
+    }
+
 }
 
 impl Iterator for Charwise {
@@ -33,12 +42,4 @@ impl Iterator for Charwise {
         }
     }
 
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
 }
