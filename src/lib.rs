@@ -105,11 +105,11 @@ impl<S: Bufferize> Charwise<S> {
     /// Similar to `skip_peeked`, this function should be called only after calling
     /// `peek(k)` for `k >= n`. In other words, the function expects that at least n
     /// characters are already buffered and assumes that without further checks.
-    pub fn advance_by(&mut self, n: usize) {
+    pub fn skip_n_peeked(&mut self, n: usize) {
 
         debug_assert!(self.position_in_buffer + n < self.buffer.len());
 
-        self.position_in_buffer += n;
+        self.position_in_buffer += n + 1;
         self.cleanup_buffer();
 
     }
