@@ -90,6 +90,30 @@ impl<S: Bufferize> Charwise<S> {
         }
     }
 
+    /// Assuming the character has been peeked, advance the stream without looking at it
+    /// Call this function only in case you just want to skip the current character because
+    /// you already know it after calling `peek`.
+    pub fn skip_peeked(&mut self) {
+
+        debug_assert!(self.position_in_buffer < self.buffer.len());
+
+        self.position_in_buffer += 1;
+        self.cleanup_buffer();
+
+    }
+
+    /// Similar to `skip_peeked`, this function should be called only after calling
+    /// `peek(k)` for `k >= n`. In other words, the function expects that at least n
+    /// characters are already buffered and assumes that without further checks.
+    pub fn advance_by(&mut self, n: usize) {
+
+        debug_assert!(self.position_in_buffer + n < self.buffer.len());
+
+        self.position_in_buffer += n;
+        self.cleanup_buffer();
+
+    }
+
     fn cleanup_buffer(&mut self) {
         if self.position_in_buffer >= CLEANUP_THRESHOLD {
             self.buffer.drain(..self.position_in_buffer);

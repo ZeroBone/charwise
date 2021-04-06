@@ -11,7 +11,7 @@ This library is particularly useful when implementing handwritten [lexers](https
 * Peeking next characters without consuming them.
 * Abstracting from the source we are reading characters from.
 
-All these features are implemented in `charwise`. Abstraction from the source is done via generics to eliminate the possible overhead of static dispatching.
+All these features are implemented in `charwise`.
 
 ## Installation
 

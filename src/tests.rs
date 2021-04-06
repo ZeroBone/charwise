@@ -11,8 +11,8 @@ fn test_file_simple_iter(data: &str) {
 
     for (i, c) in data.chars().enumerate() {
         assert_eq!(cwf.reading_position(), i);
-        assert_eq!(cwf.peek().unwrap().unwrap_or('\0'), c);
-        assert_eq!(cwf.next().unwrap().unwrap_or('\0'), c);
+        assert_eq!(cwf.peek().unwrap().unwrap(), c);
+        assert_eq!(cwf.next().unwrap().unwrap(), c);
     }
 
     assert!(cwf.peek().is_none());
