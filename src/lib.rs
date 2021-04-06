@@ -1,51 +1,145 @@
-pub mod file;
+mod bufferize;
 
 use std::fs::File;
-use std::io::Result;
-use crate::file::CharwiseFile;
+use std::io::{Result, BufReader, stdin, Stdin};
+use crate::bufferize::Bufferize;
 
-pub enum Charwise {
-    File(CharwiseFile),
-    Stdin
+pub struct Charwise<S: Bufferize> {
+    source: S,
+    buffer: Vec<char>,
+    position: usize,
+    position_in_buffer: usize
 }
 
-impl Charwise {
+const CLEANUP_THRESHOLD: usize = 1024;
+
+impl Charwise<BufReader<File>> {
 
     pub fn from_file(file: File) -> Self {
-        Self::File(CharwiseFile::new(file))
+        Self {
+            source: BufReader::new(file),
+            buffer: vec![],
+            position: 0,
+            position_in_buffer: 0
+        }
     }
+
+}
+
+impl Charwise<Stdin> {
+
+    pub fn from_stdin() -> Self {
+        Self {
+            source: stdin(),
+            buffer: vec![],
+            position: 0,
+            position_in_buffer: 0
+        }
+    }
+
+}
+
+impl<S: Bufferize> Charwise<S> {
 
     /// Returns the position of the next character to be read, or,
     /// in other words, the amount of characters read so far
     pub fn reading_position(&self) -> usize {
-        match self {
-            Charwise::File(cf) => cf.reading_position(),
-            Charwise::Stdin => todo!()
+        self.position + self.position_in_buffer
+    }
+
+    /// Reads the next character without changing the current position
+    pub fn peek(&mut self) -> Option<Result<char>> {
+        self.peek_nth(0)
+    }
+
+    /// Reads the n-th character ahead of the reader without altering the current position,
+    /// calling `peek_nth(0)` is equivalent to reading the next character similar to `next()`
+    pub fn peek_nth(&mut self, n: usize) -> Option<Result<char>> {
+
+        loop {
+
+            self.cleanup_buffer();
+
+            if self.position_in_buffer + n < self.buffer.len() {
+                return Some(Ok(self.buffer[self.position_in_buffer + n]));
+            }
+
+            let mut temp_buffer = String::new();
+
+            match self.source.read_to_string(&mut temp_buffer) {
+                Ok(bytes_read) => {
+
+                    if bytes_read == 0 {
+                        // eof reached
+                        return None
+                    }
+
+                    let temp_buffer: &mut Vec<char> = &mut temp_buffer.chars().collect();
+
+                    debug_assert!(temp_buffer.len() >= 1);
+
+                    self.buffer.append(temp_buffer);
+
+                    debug_assert!(self.buffer.len() >= 1);
+
+                }
+                Err(e) => {
+                    return Some(Err(e));
+                }
+            }
         }
     }
 
-    pub fn peek(&mut self) -> Option<Result<char>> {
-        match self {
-            Charwise::File(cf) => cf.peek(),
-            Charwise::Stdin => todo!()
+    fn cleanup_buffer(&mut self) {
+        if self.position_in_buffer >= CLEANUP_THRESHOLD {
+            self.buffer.drain(..self.position_in_buffer);
+            self.position += self.position_in_buffer;
+            self.position_in_buffer = 0;
         }
     }
 
 }
 
-impl Iterator for Charwise {
+impl<S: Bufferize> Iterator for Charwise<S> {
 
     type Item = Result<char>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self {
-            Charwise::File(cf) => {
-                cf.next()
+
+        if self.position_in_buffer < self.buffer.len() {
+            let c = self.buffer[self.position_in_buffer];
+            self.position_in_buffer += 1;
+            self.cleanup_buffer();
+            return Some(Ok(c));
+        }
+
+        let mut temp_buffer = String::new();
+
+        match self.source.read_to_string(&mut temp_buffer) {
+            Ok(bytes_read) => {
+
+                if bytes_read == 0 {
+                    // eof reached
+                    return None
+                }
+
+                self.buffer = temp_buffer.chars().collect();
+
+                debug_assert!(self.buffer.len() >= 1);
+
+                self.position += self.position_in_buffer;
+
+                self.position_in_buffer = 1;
+
+                Some(Ok(self.buffer[0]))
             }
-            Charwise::Stdin => {
-                todo!()
+            Err(e) => {
+                Some(Err(e))
             }
         }
     }
 
 }
+
+#[cfg(test)]
+mod tests;
