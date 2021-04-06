@@ -9,6 +9,8 @@ pub struct CharwiseFile {
     position_in_buffer: usize
 }
 
+const CLEANUP_THRESHOLD: usize = 1024;
+
 impl CharwiseFile {
 
     pub fn new(file: File) -> Self {
@@ -70,7 +72,11 @@ impl CharwiseFile {
     }
 
     fn cleanup_buffer(&mut self) {
-        // TODO
+        if self.position_in_buffer >= CLEANUP_THRESHOLD {
+            self.buffer.drain(..self.position_in_buffer);
+            self.position += self.position_in_buffer;
+            self.position_in_buffer = 0;
+        }
     }
 
 }
